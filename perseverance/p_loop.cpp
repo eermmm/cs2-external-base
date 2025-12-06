@@ -15,7 +15,8 @@ void draw_cornered_box(float x, float y, float w, float h, const ImColor color, 
 
 void esp_loop()
 {
-    Cache* c = perseverance::p_cache.load(std::memory_order_acquire);
+    auto c = std::atomic_load_explicit(&perseverance::p_cache, std::memory_order_acquire);
+
     if (!c) return;
 
     const LocalPlayer& local = c->get_local();

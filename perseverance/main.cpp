@@ -4,18 +4,18 @@
 namespace perseverance
 {
 	CheatInstance p_cheatinstance;
-	std::atomic<Cache*> p_cache;
+	std::shared_ptr<Cache> p_cache;
 }
 
 void cache_thread()
 {
 	while (true)
 	{
-		Cache* newc = new Cache(&perseverance::p_cheatinstance);
+		auto newc = std::make_shared<Cache>(&perseverance::p_cheatinstance);
 		newc->update_all();
 
-		Cache* old = perseverance::p_cache.exchange(newc);
-		delete old;
+		std::atomic_store_explicit(&perseverance::p_cache, newc, std::memory_order_release);
+
 
 		std::this_thread::sleep_for(std::chrono::microseconds(1));
 	}
@@ -34,7 +34,7 @@ int main()
 
 	std::cerr << "Initialized" << std::endl;
 
-	perseverance::p_cache.store(new Cache(&perseverance::p_cheatinstance));
+	std::atomic_store(&perseverance::p_cache, std::make_shared<Cache>(&perseverance::p_cheatinstance));
 	std::thread(cache_thread).detach();
 
 	while (true)

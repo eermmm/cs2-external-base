@@ -72,10 +72,6 @@ struct view_matrix_t {
 
 class PlayerEntity
 {
-protected:
-	DWORD64				playerController = 0;
-	DWORD64					  playerPawn = 0;
-	const CheatInstance*	 cheat = nullptr;
 
 public:
 
@@ -146,6 +142,11 @@ public:
 	bool	           is_alive() const;
 	bool	   is_enemy(int ltid) const;
 	bool is_valid() const { return playerController && playerPawn; }
+
+protected:
+	DWORD64				playerController = 0;
+	DWORD64					  playerPawn = 0;
+	const CheatInstance* cheat = nullptr;
 };
 
 class LocalPlayer : public PlayerEntity
@@ -182,7 +183,6 @@ private:
 	LocalPlayer					   local;
 	std::vector<PlayerEntity> entityList;
 
-private:
 	void update_local() { local.update(); }
 	void update_players();
 	void update_misc();

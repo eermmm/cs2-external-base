@@ -20,7 +20,7 @@ vec3 PlayerEntity::get_pos() const {
 }
 
 int PlayerEntity::get_team() const {
-	return cheat->p_mem->read<int>(playerPawn + 0x3EB);
+	return cheat->p_mem->read<int>(playerPawn + 0x3EB); // unselvoed external in comp game!
 }
 
 int PlayerEntity::get_health() const {

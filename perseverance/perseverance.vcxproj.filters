@@ -11,11 +11,11 @@
     <Filter Include="main\memory">
       <UniqueIdentifier>{8bcaa5fb-4fbb-40e3-a21d-9d03c914c65f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="main\sdk">
-      <UniqueIdentifier>{9527d942-cf73-46b8-8428-fbfecf634855}</UniqueIdentifier>
-    </Filter>
     <Filter Include="main\overlay">
       <UniqueIdentifier>{a1db13e8-abb7-4929-99be-4531447ee620}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="main\sdk">
+      <UniqueIdentifier>{9527d942-cf73-46b8-8428-fbfecf634855}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -48,6 +48,15 @@ template<typename T>
 T UmMemoryInstance::read(SIZE_T address)
 {
     T buffer;
-    ReadProcessMemory(p_handle, (LPCVOID)address, &buffer, sizeof(T), 0);
-    return buffer;
+    try
+    {
+        if (!ReadProcessMemory(p_handle, (LPCVOID)address, &buffer, sizeof(T), 0))
+            return buffer;
+        else
+            return buffer;
+    }
+    catch (const std::exception&)
+    {
+        return buffer;
+    }
 }

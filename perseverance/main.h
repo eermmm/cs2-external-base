@@ -11,6 +11,7 @@
 namespace perseverance
 {
 	extern CheatInstance p_cheatinstance;
-	extern std::atomic<Cache*> p_cache;
+	extern std::shared_ptr<Cache> p_cache;
+
 
 }
