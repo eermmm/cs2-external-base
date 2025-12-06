@@ -1,17 +1,17 @@
-# 🟦 Perseverance
+# Perseverance
 A lightweight CS2 external ESP base (C++)
 
 Perseverance is a minimal and efficient external Counter-Strike 2 ESP base written in modern C++.
 It provides clean overlay rendering with cornered boxes and full skeleton ESP, designed for developers who want a simple, readable, and expandable foundation.
 
-# ✨ Features
-🎯 Cornered box ESP 
+# Features
+Cornered box ESP 
 
-🦴 Skeleton ESP
+Skeleton ESP
 
 ![Preview](https://i.imgur.com/De55Vti.jpeg)
 
-# ⚠️ Disclaimer
+# Disclaimer
 
 This project is for educational and research purposes only.
 You are solely responsible for how you use this code.
