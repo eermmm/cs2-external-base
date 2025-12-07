@@ -39,6 +39,8 @@ void esp_loop()
         vec3 origin = player.get_pos();
         vec3 head = player.get_bone(player.head);
 
+        head.z += 8.f;
+
         vec2 origin2d, head2d;
         if (!World2Screen(origin, origin2d, c->viewMatrix.matrix, c->Width, c->Height) ||
             !World2Screen(head, head2d, c->viewMatrix.matrix, c->Width, c->Height))
@@ -52,12 +54,10 @@ void esp_loop()
             head2d.y < 0 || head2d.y > c->Height)
             continue;
 
-        float padding_top = 20.0f;
-        float scale_factor = 1.2f;  
-        float box_height = abs(head2d.y - origin2d.y) * scale_factor;
+        float box_height = abs(head2d.y - origin2d.y);
         float box_width = box_height * 0.5f;
         float box_x = head2d.x - box_width / 2;
-        float box_y = head2d.y - padding_top; 
+        float box_y = head2d.y;
 
         if (settings::box)
             draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 0.5f);
