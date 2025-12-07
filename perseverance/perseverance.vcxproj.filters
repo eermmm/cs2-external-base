@@ -64,6 +64,9 @@
     <ClInclude Include="p_overlay.h">
       <Filter>main\overlay</Filter>
     </ClInclude>
+    <ClInclude Include="image.hpp">
+      <Filter>main\overlay</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imgui.cpp">

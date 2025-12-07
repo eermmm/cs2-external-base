@@ -12,6 +12,5 @@ namespace perseverance
 {
 	extern CheatInstance p_cheatinstance;
 	extern std::shared_ptr<Cache> p_cache;
-
-
+	extern IDirect3DTexture9* cat;
 }

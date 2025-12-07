@@ -1,6 +1,13 @@
 #include "p_loop.h"
 #include "imgui/imgui.h"
 
+namespace settings
+{
+    bool box = false;
+    bool skeleton = true;
+    bool kitty = false;
+}
+
 void draw_cornered_box(float x, float y, float w, float h, const ImColor color, float thickness)
 {
 	ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y), ImVec2(x, y + (h / 3)), color, thickness);
@@ -45,30 +52,44 @@ void esp_loop()
             head2d.y < 0 || head2d.y > c->Height)
             continue;
 
-        float box_height = abs(head2d.y - origin2d.y);
+        float padding_top = 20.0f;
+        float scale_factor = 1.2f;  
+        float box_height = abs(head2d.y - origin2d.y) * scale_factor;
         float box_width = box_height * 0.5f;
         float box_x = head2d.x - box_width / 2;
-        float box_y = head2d.y;
+        float box_y = head2d.y - padding_top; 
 
-        draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 0.5f);
+        if (settings::box)
+            draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 0.5f);
 
-        for (const auto& [from, to] : player.skeleton)
+        if (settings::skeleton)
         {
-            vec3 bone_start_3D = player.get_bone(from);
-            vec3 bone_end_3D = player.get_bone(to);
+            for (const auto& [from, to] : player.skeleton)
+            {
+                vec3 bone_start_3D = player.get_bone(from);
+                vec3 bone_end_3D = player.get_bone(to);
 
-            vec2 screen_start, screen_end;
-            if (!World2Screen(bone_start_3D, screen_start, c->viewMatrix.matrix, c->Width, c->Height) ||
-                !World2Screen(bone_end_3D, screen_end, c->viewMatrix.matrix, c->Width, c->Height))
-                continue;
+                vec2 screen_start, screen_end;
+                if (!World2Screen(bone_start_3D, screen_start, c->viewMatrix.matrix, c->Width, c->Height) ||
+                    !World2Screen(bone_end_3D, screen_end, c->viewMatrix.matrix, c->Width, c->Height))
+                    continue;
 
-            ImGui::GetBackgroundDrawList()->AddLine(
-                ImVec2(screen_start.x, screen_start.y),
-                ImVec2(screen_end.x, screen_end.y),
-                ImColor(255, 255, 255, 255),
-                1.f
-            );
+                ImGui::GetBackgroundDrawList()->AddLine(
+                    ImVec2(screen_start.x, screen_start.y),
+                    ImVec2(screen_end.x, screen_end.y),
+                    ImColor(255, 255, 255, 255),
+                    1.f
+                );
+            }
         }
+
+        if (settings::kitty)
+            ImGui::GetForegroundDrawList()->AddImage(
+                (ImTextureID)perseverance::cat,
+                ImVec2(box_x, box_y),                             
+                ImVec2(box_x + box_width, box_y + box_height)
+            );
+
     }
 }
 
@@ -93,7 +114,16 @@ void main_loop(CheatInstance& ci)
 		ImDrawList* draw_list = ImGui::GetForegroundDrawList();
 		ImVec2 pos = ImVec2(10, 10);
 		ImU32 color = IM_COL32(0, 133, 255, 255);
-		draw_list->AddText(pos, color, ("perseverance"));
+		draw_list->AddText(pos, color, ("terry davis' third temple"));
+
+        if (GetAsyncKeyState(VK_F1) & 1)
+            settings::box = !settings::box;
+
+        if (GetAsyncKeyState(VK_F2) & 1)
+            settings::skeleton = !settings::skeleton;
+
+        if (GetAsyncKeyState(VK_F3) & 1)
+            settings::kitty = !settings::kitty;
 
         esp_loop();
 
