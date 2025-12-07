@@ -7,7 +7,7 @@ It provides clean overlay rendering with cornered boxes and full skeleton ESP, d
 # Features
 Cornered box ESP, Skeleton ESP, Cat ESP, Keybinds (f1 box, f2 skeleton, f3 cat)
 
-![Preview](https://i.imgur.com/De55Vti.jpeg)
+![Preview](https://i.imgur.com/9RuMcGC.jpeg)
 
 # Disclaimer
 
