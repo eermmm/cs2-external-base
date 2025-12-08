@@ -7,11 +7,13 @@ namespace perseverance
 	CheatInstance p_cheatinstance;
 	std::shared_ptr<Cache> p_cache;
 	IDirect3DTexture9* cat;
+	bool initialized = false;
 }
 
+std::atomic_bool running{ false };
 void cache_thread()
 {
-	while (true)
+	while (perseverance::initialized)
 	{
 		if (!perseverance::p_cheatinstance.p_mem->FindPid("cs2.exe"))
 			break;
@@ -23,7 +25,7 @@ void cache_thread()
 
 		std::this_thread::sleep_for(std::chrono::microseconds(1));
 	}
-	exit(1);
+	perseverance::initialized = false;
 }
 
 int main()
@@ -36,6 +38,7 @@ int main()
 		std::cerr << "Failed to Initialize" << std::endl;
 		return 1;
 	}
+	perseverance::initialized = true;
 
 	HRESULT h = D3DXCreateTextureFromFileInMemory(perseverance::p_cheatinstance.p_overlay.dx9.device, kitty_cat, sizeof(kitty_cat), &perseverance::cat);
 	if (h < 0)
@@ -44,12 +47,18 @@ int main()
 	std::cerr << "Initialized" << std::endl;
 
 	std::atomic_store(&perseverance::p_cache, std::make_shared<Cache>(&perseverance::p_cheatinstance));
-	std::thread(cache_thread).detach();
+	std::thread cacheThread = std::thread(cache_thread);
 
-	while (true)
+	while (perseverance::initialized)
 	{
 		main_loop(perseverance::p_cheatinstance);
 	}
+
+	if (cacheThread.joinable())
+		cacheThread.join();
+
+	perseverance::p_cache.reset();
+	perseverance::p_cheatinstance.Uninitialize();
 
 	return 0;
 }

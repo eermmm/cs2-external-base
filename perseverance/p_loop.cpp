@@ -67,8 +67,7 @@ void esp_loop()
 
         if (settings::health)
         {
-            float health = player.get_health();
-            float health_width = (box_width * health) / 100.f;
+            int health = player.get_health();
             ImColor health_color = health > 50 ? ImColor(0, 255, 0) : health > 25 ? ImColor(255, 255, 0) : ImColor(255, 0, 0);
             ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(box_x - 5, box_y + box_height - (box_height * health / 100.f)), ImVec2(box_x - 3, box_y + box_height), health_color);
         }
@@ -156,6 +155,9 @@ void main_loop(CheatInstance& ci)
 
         if (GetAsyncKeyState(VK_F5) & 1)
             settings::distance = !settings::distance;
+
+        if (GetAsyncKeyState(VK_F12))
+            perseverance::initialized = false;
          
         esp_loop();
 

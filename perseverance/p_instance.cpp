@@ -1,4 +1,6 @@
 #include "p_instance.h"
+#include "imgui/imgui_impl_dx9.h"
+#include "imgui/imgui_impl_win32.h"
 
 bool CheatInstance::AttachToProcess()
 {
@@ -51,4 +53,28 @@ bool CheatInstance::Initialize()
 	std::cerr << "Initialized overlay" << std::endl;
 
 	return true;
+}
+
+void CheatInstance::Uninitialize()
+{
+	if (ImGui::GetCurrentContext()) {
+		ImGui_ImplDX9_Shutdown();
+		ImGui_ImplWin32_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	if (p_overlay.dx9.device) {
+		p_overlay.dx9.device->Release();
+		p_overlay.dx9.device = nullptr;
+	}
+
+	if (p_overlay.dx9.d3d9) {
+		p_overlay.dx9.d3d9->Release();
+		p_overlay.dx9.d3d9 = nullptr;
+	}
+
+	if (p_mem && p_mem->IsAttached())
+		CloseHandle(p_mem->GetHandle());
+
+	p_mem = nullptr;
 }

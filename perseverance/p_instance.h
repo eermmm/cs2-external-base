@@ -30,6 +30,7 @@ public:
 
 	bool AttachToProcess();
 	bool	  Initialize();
+	void	Uninitialize();
 	
 	ProcessModules p_modules{};
 	Overlay		   p_overlay{};
