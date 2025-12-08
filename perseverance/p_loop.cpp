@@ -1,10 +1,13 @@
 #include "p_loop.h"
 #include "imgui/imgui.h"
+#include <string>
 
 namespace settings
 {
     bool box = false;
     bool skeleton = true;
+    bool distance = false; 
+    bool health = false;
     bool kitty = false;
 }
 
@@ -46,21 +49,44 @@ void esp_loop()
             !World2Screen(head, head2d, c->viewMatrix.matrix, c->Width, c->Height))
             continue;
 
-        if (origin2d.x < 0 || origin2d.x > c->Width ||
-            origin2d.y < 0 || origin2d.y > c->Height)
-            continue;
-
-        if (head2d.x < 0 || head2d.x > c->Width ||
-            head2d.y < 0 || head2d.y > c->Height)
+        if (origin2d.x < -50 || origin2d.x > c->Width + 50 ||
+            origin2d.y < -50 || origin2d.y > c->Height + 50 ||
+            head2d.x < -50 || head2d.x > c->Width + 50 ||
+            head2d.y < -50 || head2d.y > c->Height + 50)
             continue;
 
         float box_height = abs(head2d.y - origin2d.y);
         float box_width = box_height * 0.5f;
         float box_x = head2d.x - box_width / 2;
         float box_y = head2d.y;
+        ImVec2 box_min(box_x, box_y);
+        ImVec2 box_max(box_x + box_width, box_y + box_height);
 
         if (settings::box)
             draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 0.5f);
+
+        if (settings::health)
+        {
+            float health = player.get_health();
+            float health_width = (box_width * health) / 100.f;
+            ImColor health_color = health > 50 ? ImColor(0, 255, 0) : health > 25 ? ImColor(255, 255, 0) : ImColor(255, 0, 0);
+            ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(box_x - 5, box_y + box_height - (box_height * health / 100.f)), ImVec2(box_x - 3, box_y + box_height), health_color);
+        }
+
+        if (settings::distance)
+        {
+            vec3 diff = local.get_pos() - player.get_pos();
+            float distance = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+            distance = distance / 52.49f;
+            std::string dist_text = std::to_string((int)distance) + "m";
+
+            ImVec2 text_size = ImGui::CalcTextSize(dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(
+                ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + 2),
+                ImColor(255, 255, 255),
+                dist_text.c_str()
+            );
+        }
 
         if (settings::skeleton)
         {
@@ -86,8 +112,8 @@ void esp_loop()
         if (settings::kitty)
             ImGui::GetForegroundDrawList()->AddImage(
                 (ImTextureID)perseverance::cat,
-                ImVec2(box_x, box_y),                             
-                ImVec2(box_x + box_width, box_y + box_height)
+                box_min,                             
+                box_max
             );
 
     }
@@ -125,6 +151,12 @@ void main_loop(CheatInstance& ci)
         if (GetAsyncKeyState(VK_F3) & 1)
             settings::kitty = !settings::kitty;
 
+        if (GetAsyncKeyState(VK_F4) & 1)
+            settings::health = !settings::health;
+
+        if (GetAsyncKeyState(VK_F5) & 1)
+            settings::distance = !settings::distance;
+         
         esp_loop();
 
         ImGui::EndFrame();
