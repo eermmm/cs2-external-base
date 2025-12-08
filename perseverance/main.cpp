@@ -10,7 +10,6 @@ namespace perseverance
 	bool initialized = false;
 }
 
-std::atomic_bool running{ false };
 void cache_thread()
 {
 	while (perseverance::initialized)
@@ -61,4 +60,5 @@ int main()
 	perseverance::p_cheatinstance.Uninitialize();
 
 	return 0;
+
 }
