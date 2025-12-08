@@ -6,10 +6,14 @@
 class UmMemoryInstance
 {
 public:
-    DWORD               FindPid(const std::string& processName);
-    DWORD64      GetBaseAddress(const std::string& processName);
 
-    template<typename T> T read(SIZE_T address);
+    template<typename T> T read(SIZE_T address)
+    {
+        T buffer;
+        ReadProcessMemory(p_handle, (LPCVOID)address, &buffer, sizeof(T), 0);
+
+        return buffer;
+    }
 
     bool Attach(const std::string& processName)
     {
@@ -36,27 +40,12 @@ public:
         return p_handle != nullptr && p_processID != 0;
     }
 
-    DWORD GetPid() const { return p_processID; }
-    HANDLE GetHandle() const { return p_handle; }
+    DWORD               FindPid(const std::string& processName);
+    DWORD64      GetBaseAddress(const std::string& processName);
+    DWORD                 GetPid() const { return p_processID; }
+    HANDLE                GetHandle() const { return p_handle; }
 
 private:
     HANDLE p_handle = nullptr;
     DWORD     p_processID = 0;
 };
-
-template<typename T> 
-T UmMemoryInstance::read(SIZE_T address)
-{
-    T buffer;
-    try
-    {
-        if (!ReadProcessMemory(p_handle, (LPCVOID)address, &buffer, sizeof(T), 0))
-            return buffer;
-        else
-            return buffer;
-    }
-    catch (const std::exception&)
-    {
-        return buffer;
-    }
-}

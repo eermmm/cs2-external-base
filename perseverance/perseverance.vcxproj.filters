@@ -49,9 +49,6 @@
     <ClInclude Include="p_loop.h">
       <Filter>main</Filter>
     </ClInclude>
-    <ClInclude Include="p_memory.h">
-      <Filter>main\memory</Filter>
-    </ClInclude>
     <ClInclude Include="p_cheat.h">
       <Filter>main\sdk</Filter>
     </ClInclude>
@@ -66,6 +63,9 @@
     </ClInclude>
     <ClInclude Include="image.hpp">
       <Filter>main\overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="p_memory.h">
+      <Filter>main\memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

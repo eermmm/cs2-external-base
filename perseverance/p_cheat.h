@@ -72,9 +72,7 @@ struct view_matrix_t {
 
 class PlayerEntity
 {
-
 public:
-
 	PlayerEntity(DWORD64 pc, DWORD64 pp, const CheatInstance* cheatPtr) : playerController(pc), playerPawn(pp), cheat(cheatPtr) { }
 	~PlayerEntity() = default;
 

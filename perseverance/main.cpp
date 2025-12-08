@@ -13,16 +13,17 @@ void cache_thread()
 {
 	while (true)
 	{
+		if (!perseverance::p_cheatinstance.p_mem->FindPid("cs2.exe"))
+			break;
+
 		auto newc = std::make_shared<Cache>(&perseverance::p_cheatinstance);
 		newc->update_all();
 
 		std::atomic_store_explicit(&perseverance::p_cache, newc, std::memory_order_release);
 
-		if (!perseverance::p_cheatinstance.p_mem->FindPid("cs2.exe"))
-			break;
-
 		std::this_thread::sleep_for(std::chrono::microseconds(1));
 	}
+	exit(1);
 }
 
 int main()
