@@ -1,9 +1,11 @@
 #include "p_loop.h"
 #include "imgui/imgui.h"
 #include <string>
+#include <algorithm>
 
 namespace settings
 {
+    bool menu_key = true;   
     bool box = false;
     bool skeleton = true;
     bool distance = false; 
@@ -13,6 +15,18 @@ namespace settings
 
 void draw_cornered_box(float x, float y, float w, float h, const ImColor color, float thickness)
 {
+    int outline = thickness + 2;
+    ImColor black = ImColor(0, 0, 0, 255);
+
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y), ImVec2(x, y + (h / 3)), black, outline);
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y), ImVec2(x + (w / 3), y), black, outline);
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x + w - (w / 3), y), ImVec2(x + w, y), black, outline);
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x + w, y), ImVec2(x + w, y + (h / 3)), black, outline);
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y + h - (h / 3)), ImVec2(x, y + h), black, outline);
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y + h), ImVec2(x + (w / 3), y + h), black, outline);
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x + w - (w / 3), y + h), ImVec2(x + w, y + h), black, outline);
+    ImGui::GetForegroundDrawList()->AddLine(ImVec2(x + w, y + h - (h / 3)), ImVec2(x + w, y + h), black, outline);
+
 	ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y), ImVec2(x, y + (h / 3)), color, thickness);
 	ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y), ImVec2(x + (w / 3), y), color, thickness);
 	ImGui::GetForegroundDrawList()->AddLine(ImVec2(x + w - (w / 3), y), ImVec2(x + w, y), color, thickness);
@@ -26,7 +40,6 @@ void draw_cornered_box(float x, float y, float w, float h, const ImColor color, 
 void esp_loop()
 {
     auto c = std::atomic_load_explicit(&perseverance::p_cache, std::memory_order_acquire);
-
     if (!c) return;
 
     const LocalPlayer& local = c->get_local();
@@ -63,12 +76,13 @@ void esp_loop()
         ImVec2 box_max(box_x + box_width, box_y + box_height);
 
         if (settings::box)
-            draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 0.5f);
+            draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 1.f);
 
         if (settings::health)
         {
             int health = player.get_health();
             ImColor health_color = health > 50 ? ImColor(0, 255, 0) : health > 25 ? ImColor(255, 255, 0) : ImColor(255, 0, 0);
+            ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(box_x - 6, box_y - 1), ImVec2(box_x - 2, box_y + box_height + 1), ImColor(0, 0, 0));
             ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(box_x - 5, box_y + box_height - (box_height * health / 100.f)), ImVec2(box_x - 3, box_y + box_height), health_color);
         }
 
@@ -79,8 +93,20 @@ void esp_loop()
             distance = distance / 52.49f;
             std::string dist_text = std::to_string((int)distance) + "m";
 
-            ImVec2 text_size = ImGui::CalcTextSize(dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + 2), ImColor(255, 255, 255), dist_text.c_str());
+            ImFont* font = ImGui::GetFont();
+            ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, dist_text.c_str());
+            ImVec2 text_pos = ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + 2);
+
+            float outline_size = 1.0f; 
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), dist_text.c_str());
         }
 
         if (settings::skeleton)
@@ -95,12 +121,8 @@ void esp_loop()
                     !World2Screen(bone_end_3D, screen_end, c->viewMatrix.matrix, c->Width, c->Height))
                     continue;
 
-                ImGui::GetBackgroundDrawList()->AddLine(
-                    ImVec2(screen_start.x, screen_start.y),
-                    ImVec2(screen_end.x, screen_end.y),
-                    ImColor(255, 255, 255, 255),
-                    1.f
-                );
+                //ImGui::GetBackgroundDrawList()->AddLine(ImVec2(screen_start.x, screen_start.y), ImVec2(screen_end.x, screen_end.y), ImColor(0, 0, 0, 255), 3.f);
+                ImGui::GetBackgroundDrawList()->AddLine(ImVec2(screen_start.x, screen_start.y), ImVec2(screen_end.x, screen_end.y), ImColor(255, 255, 255, 255), 1.f);
             }
         }
 
@@ -132,6 +154,9 @@ void main_loop(CheatInstance& ci)
 		ImU32 color = IM_COL32(0, 133, 255, 255);
 		draw_list->AddText(pos, color, ("terry davis' third temple"));
 
+        if (GetAsyncKeyState(VK_INSERT) & 1)
+            settings::menu_key = !settings::menu_key;
+
         if (GetAsyncKeyState(VK_F1) & 1)
             settings::box = !settings::box;
 
@@ -151,7 +176,6 @@ void main_loop(CheatInstance& ci)
             perseverance::initialized = false;
          
         esp_loop();
-
         ImGui::EndFrame();
 
         ci.p_overlay.dx9.device->Clear(0, NULL, D3DCLEAR_TARGET,D3DCOLOR_ARGB(0, 0, 0, 0), 1.0f, 0);

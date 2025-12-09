@@ -60,5 +60,4 @@ int main()
 	perseverance::p_cheatinstance.Uninitialize();
 
 	return 0;
-
 }
