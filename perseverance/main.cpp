@@ -7,12 +7,13 @@ namespace perseverance
 	CheatInstance p_cheatinstance;
 	std::shared_ptr<Cache> p_cache;
 	IDirect3DTexture9* cat;
-	bool initialized = false;
+	bool initialized;
 }
 
+std::atomic_bool running{ false };
 void cache_thread()
 {
-	while (perseverance::initialized)
+	while (perseverance::initialized == true)
 	{
 		if (!perseverance::p_cheatinstance.p_mem->FindPid("cs2.exe"))
 			break;
@@ -48,7 +49,7 @@ int main()
 	std::atomic_store(&perseverance::p_cache, std::make_shared<Cache>(&perseverance::p_cheatinstance));
 	std::thread cacheThread = std::thread(cache_thread);
 
-	while (perseverance::initialized)
+	while (perseverance::initialized == true)
 	{
 		main_loop(perseverance::p_cheatinstance);
 	}
@@ -60,5 +61,4 @@ int main()
 	perseverance::p_cheatinstance.Uninitialize();
 
 	return 0;
-
 }

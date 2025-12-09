@@ -80,11 +80,7 @@ void esp_loop()
             std::string dist_text = std::to_string((int)distance) + "m";
 
             ImVec2 text_size = ImGui::CalcTextSize(dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(
-                ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + 2),
-                ImColor(255, 255, 255),
-                dist_text.c_str()
-            );
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + 2), ImColor(255, 255, 255), dist_text.c_str());
         }
 
         if (settings::skeleton)
@@ -109,12 +105,7 @@ void esp_loop()
         }
 
         if (settings::kitty)
-            ImGui::GetForegroundDrawList()->AddImage(
-                (ImTextureID)perseverance::cat,
-                box_min,                             
-                box_max
-            );
-
+            ImGui::GetForegroundDrawList()->AddImage((ImTextureID)perseverance::cat, box_min, box_max);
     }
 }
 
@@ -123,7 +114,7 @@ void main_loop(CheatInstance& ci)
     static RECT oldRect = { 0 };
     ZeroMemory(&ci.p_overlay.dx9.message, sizeof(MSG));
 
-    while (ci.p_overlay.dx9.message.message != WM_QUIT)
+    while (ci.p_overlay.dx9.message.message != WM_QUIT && perseverance::initialized == true)
     {
         if (PeekMessage(&ci.p_overlay.dx9.message,
             ci.p_overlay.window.hWnd, 0, 0, PM_REMOVE))
@@ -156,7 +147,7 @@ void main_loop(CheatInstance& ci)
         if (GetAsyncKeyState(VK_F5) & 1)
             settings::distance = !settings::distance;
 
-        if (GetAsyncKeyState(VK_F12))
+        if (GetAsyncKeyState(VK_F6) & 1)
             perseverance::initialized = false;
          
         esp_loop();
