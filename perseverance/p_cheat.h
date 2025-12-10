@@ -167,24 +167,16 @@ public:
 	int			     Width = 0;
 	int			    Height = 0;
 
-	void update_all()
-	{
-		update_misc();
-		update_local();
-		update_players();
-	}
-
 	void clear() { entityList.clear(); }
 	const std::vector<PlayerEntity>& get_players() const { return entityList; }
 	const LocalPlayer& get_local() const { return local; }
+	void update_misc();
+	void update_local() { local.update(); }
+	void update_players();
 
 private:
 	LocalPlayer					   local;
 	std::vector<PlayerEntity> entityList;
-
-	void update_local() { local.update(); }
-	void update_players();
-	void update_misc();
 
 protected:
 	const CheatInstance* cheat = nullptr;

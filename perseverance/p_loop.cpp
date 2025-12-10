@@ -43,6 +43,8 @@ void esp_loop()
     auto c = std::atomic_load_explicit(&perseverance::p_cache, std::memory_order_acquire);
     if (!c) return;
 
+    c->update_misc();
+
     const LocalPlayer& local = c->get_local();
     if (!local.is_valid())
         return;
@@ -221,5 +223,4 @@ void main_loop(CheatInstance& ci)
             ImGui_ImplDX9_CreateDeviceObjects();
         }
     }
-
 }

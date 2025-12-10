@@ -18,7 +18,8 @@ void cache_thread()
 			break;
 
 		auto newc = std::make_shared<Cache>(&perseverance::p_cheatinstance);
-		newc->update_all();
+		newc->update_local();
+		newc->update_players();
 
 		std::atomic_store_explicit(&perseverance::p_cache, newc, std::memory_order_release);
 
