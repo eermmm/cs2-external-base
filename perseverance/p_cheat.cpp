@@ -20,11 +20,19 @@ vec3 PlayerEntity::get_pos() const {
 }
 
 int PlayerEntity::get_team() const {
-	return cheat->p_mem->read<int>(playerPawn + 0x3EB); // unselvoed external in comp game!
+	return cheat->p_mem->read<int>(playerPawn + 0x3EB);
 }
 
 int PlayerEntity::get_health() const {
 	return cheat->p_mem->read<int>(playerPawn + 0x34C);
+}
+
+const char* PlayerEntity::get_name() const
+{
+	char buffer[256] = {};
+	ReadProcessMemory(cheat->p_mem->GetHandle(), LPCVOID(playerController + 0x6E8), buffer, sizeof(buffer) - 1, 0); // m_iszPlayerName
+	buffer[sizeof(buffer) - 1] = '\0';
+	return buffer;
 }
 
 bool PlayerEntity::is_alive() const {

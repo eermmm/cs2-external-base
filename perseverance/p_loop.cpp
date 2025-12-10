@@ -9,6 +9,7 @@ namespace settings
     bool box = false;
     bool skeleton = true;
     bool distance = false; 
+    bool name = true;
     bool health = false;
     bool kitty = false;
 }
@@ -109,6 +110,28 @@ void esp_loop()
             ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), dist_text.c_str());
         }
 
+        if (settings::name)
+        {
+            vec3 diff = local.get_pos() - player.get_pos();
+            float distance = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+            distance = distance / 52.49f;
+
+            ImFont* font = ImGui::GetFont();
+            ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, player.get_name());
+            ImVec2 text_pos = ImVec2(box_x + box_width - text_size.x, box_y - text_size.y - 2);
+
+            float outline_size = 1.0f;
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), player.get_name());
+        }
+
         if (settings::skeleton)
         {
             for (const auto& [from, to] : player.skeleton)
@@ -173,6 +196,9 @@ void main_loop(CheatInstance& ci)
             settings::distance = !settings::distance;
 
         if (GetAsyncKeyState(VK_F6) & 1)
+            settings::name = settings::name;
+
+        if (GetAsyncKeyState(VK_F7) & 1)
             perseverance::initialized = false;
          
         esp_loop();

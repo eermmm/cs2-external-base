@@ -137,6 +137,7 @@ public:
 	vec3				get_pos() const;
 	int				   get_team() const;
 	int				 get_health() const;
+	const char*		   get_name() const;
 	bool	           is_alive() const;
 	bool	   is_enemy(int ltid) const;
 	bool is_valid() const { return playerController && playerPawn; }
