@@ -7,7 +7,7 @@ It provides clean overlay rendering with basic ESP features, designed for develo
 # Features
 Cornered box ESP, Skeleton ESP, Cat ESP, Health ESP, Distance ESP, Keybinds (f1 box, f2 skeleton, f3 cat, f4 health, f5 distance, f6 panic key)
 
-![Preview](https://i.imgur.com/9RuMcGC.jpeg)
+![Preview](https://i.imgur.com/lmipgxn.jpeg)
 
 # Disclaimer
 
