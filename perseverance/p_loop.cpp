@@ -196,7 +196,7 @@ void main_loop(CheatInstance& ci)
             settings::distance = !settings::distance;
 
         if (GetAsyncKeyState(VK_F6) & 1)
-            settings::name = settings::name;
+            settings::name = !settings::name;
 
         if (GetAsyncKeyState(VK_F7) & 1)
             perseverance::initialized = false;
@@ -221,4 +221,5 @@ void main_loop(CheatInstance& ci)
             ImGui_ImplDX9_CreateDeviceObjects();
         }
     }
+
 }
