@@ -5,7 +5,7 @@ Perseverance is a minimal and efficient external Counter-Strike 2 ESP base writt
 It provides clean overlay rendering with basic ESP features, designed for developers who want a simple, readable, and expandable foundation.
 
 # Features
-Cornered box ESP, Skeleton ESP, Cat ESP, Health ESP, Distance ESP, Keybinds (f1 box, f2 skeleton, f3 cat, f4 health, f5 distance, f6 panic key)
+Cornered box ESP, Skeleton ESP, Cat ESP, Health ESP, Distance ESP, Keybinds (f1 box, f2 skeleton, f3 cat, f4 health, f5 distance, f6 name, f7 panic key)
 
 ![Preview](https://i.imgur.com/lmipgxn.jpeg)
 
