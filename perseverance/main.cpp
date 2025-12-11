@@ -12,12 +12,12 @@ namespace perseverance
 
 void cache_thread()
 {
+	auto newc = std::make_shared<Cache>(&perseverance::p_cheatinstance);
 	while (perseverance::initialized.load())
 	{
 		if (!perseverance::p_cheatinstance.p_mem->FindPid("cs2.exe"))
 			break;
 
-		auto newc = std::make_shared<Cache>(&perseverance::p_cheatinstance);
 		newc->update_local();
 		newc->update_players();
 
@@ -74,6 +74,7 @@ int main()
 		cacheThread.join();
 
 	perseverance::p_cache.reset();
+	if (perseverance::cat) perseverance::cat->Release();
 	perseverance::p_cheatinstance.Uninitialize();
 
 	return 0;
