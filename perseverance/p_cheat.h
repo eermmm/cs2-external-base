@@ -138,6 +138,7 @@ public:
 	int				   get_team() const;
 	int				 get_health() const;
 	const char*		   get_name() const;
+	const char*		 get_weapon() const;
 	bool	           is_alive() const;
 	bool	   is_enemy(int ltid) const;
 	bool is_valid() const { return playerController && playerPawn; }

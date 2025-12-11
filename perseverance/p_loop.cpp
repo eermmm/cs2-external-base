@@ -9,6 +9,7 @@ namespace settings
     bool box = false;
     bool skeleton = true;
     bool distance = false; 
+    bool weapon = true;
     bool name = true;
     bool health = false;
     bool kitty = false;
@@ -78,6 +79,7 @@ void esp_loop()
         ImVec2 box_min(box_x, box_y);
         ImVec2 box_max(box_x + box_width, box_y + box_height);
 
+
         if (settings::box)
             draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 1.f);
 
@@ -110,6 +112,31 @@ void esp_loop()
             ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
             ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
             ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), dist_text.c_str());
+        }
+
+        if (settings::weapon)
+        {
+            const char* weapon_name = player.get_weapon();
+            if (weapon_name && strcmp(weapon_name, "Unknown") != 0)
+            {
+                std::string weapon_text = weapon_name;
+                ImFont* font = ImGui::GetFont();
+                ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, weapon_text.c_str());
+
+                float y_offset = settings::distance ? (font->FontSize + 4) : 2;
+                ImVec2 text_pos = ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + y_offset);
+
+                float outline_size = 1.0f;
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), weapon_text.c_str());
+                ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), weapon_text.c_str());
+            }
         }
 
         if (settings::name)
@@ -201,6 +228,9 @@ void main_loop(CheatInstance& ci)
             settings::name = !settings::name;
 
         if (GetAsyncKeyState(VK_F7) & 1)
+            settings::weapon = !settings::weapon;
+
+        if (GetAsyncKeyState(VK_F8) & 1)
             perseverance::initialized = false;
          
         esp_loop();

@@ -35,6 +35,36 @@ const char* PlayerEntity::get_name() const
 	return buffer;
 }
 
+const char* PlayerEntity::get_weapon() const
+{
+	const auto* c = cheat;
+	auto& mem = c->p_mem;
+
+	DWORD64 clipping_weapon = mem->read<DWORD64>(playerPawn + 0x3DE0);
+	if (!clipping_weapon) return "Unknown";
+
+	DWORD64 weapon_data = mem->read<DWORD64>(clipping_weapon + 0x10);
+	if (!weapon_data) return "Unknown";
+ 
+	DWORD64 name_ptr = mem->read<DWORD64>(weapon_data + 0x20);
+	if (!name_ptr) return "Unknown";
+
+	static char buffer[256] = {};
+	ReadProcessMemory(mem->GetHandle(), LPCVOID(name_ptr), buffer, sizeof(buffer) - 1, 0);
+	buffer[sizeof(buffer) - 1] = '\0';
+
+	const char* prefix = "weapon_";
+	size_t prefix_len = strlen(prefix);
+	char* start = buffer;
+
+	if (strncmp(buffer, prefix, prefix_len) == 0) {
+		start = buffer + prefix_len;
+	}
+	memmove(buffer, start, strlen(start) + 1);
+
+	return buffer;
+}
+
 bool PlayerEntity::is_alive() const {
 	return get_health() > 0;
 }
