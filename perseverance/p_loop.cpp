@@ -17,7 +17,7 @@ namespace settings
 
 void draw_cornered_box(float x, float y, float w, float h, const ImColor color, float thickness)
 {
-    int outline = thickness + 2;
+    float outline = thickness + 2;
     ImColor black = ImColor(0, 0, 0, 255);
 
     ImGui::GetForegroundDrawList()->AddLine(ImVec2(x, y), ImVec2(x, y + (h / 3)), black, outline);
@@ -144,21 +144,22 @@ void esp_loop()
             vec3 diff = local.get_pos() - player.get_pos();
             float distance = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
             distance = distance / 52.49f;
+            std::string name = player.get_name();
 
             ImFont* font = ImGui::GetFont();
-            ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, player.get_name());
+            ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, name.c_str());
             ImVec2 text_pos = ImVec2(box_x + box_width - text_size.x, box_y - text_size.y - 2);
 
             float outline_size = 1.0f;
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), player.get_name());
-            ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), player.get_name());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), name.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), name.c_str());
         }
 
         if (settings::skeleton)
@@ -179,7 +180,7 @@ void esp_loop()
         }
 
         if (settings::kitty)
-            ImGui::GetForegroundDrawList()->AddImage((ImTextureID)perseverance::cat, box_min, box_max);
+            ImGui::GetForegroundDrawList()->AddImage(static_cast<ImTextureID>(perseverance::cat), box_min, box_max);
     }
 }
 
@@ -231,7 +232,8 @@ void main_loop(CheatInstance& ci)
             settings::weapon = !settings::weapon;
 
         if (GetAsyncKeyState(VK_F8) & 1)
-            perseverance::initialized = false;
+            perseverance::initialized.store(false, std::memory_order_release);
+
          
         esp_loop();
         ImGui::EndFrame();
