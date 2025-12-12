@@ -17,6 +17,9 @@
     <Filter Include="main\sdk">
       <UniqueIdentifier>{9527d942-cf73-46b8-8428-fbfecf634855}</UniqueIdentifier>
     </Filter>
+    <Filter Include="menu">
+      <UniqueIdentifier>{129a2a21-6d45-4607-9aff-a2f97824eda5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -67,6 +70,9 @@
     <ClInclude Include="p_memory.h">
       <Filter>main\memory</Filter>
     </ClInclude>
+    <ClInclude Include="menu.h">
+      <Filter>menu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imgui.cpp">
@@ -104,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="p_instance.cpp">
       <Filter>main\sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="menu.cpp">
+      <Filter>menu</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

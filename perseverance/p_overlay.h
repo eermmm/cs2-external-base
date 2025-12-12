@@ -77,7 +77,10 @@ public:
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.IniFilename = nullptr;
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/consola.ttf", 13.0f);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/verdana.ttf", 13.0f);
+
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.0588f, 0.0588f, 0.0588f, 1.0f);
 
         ImGui_ImplWin32_Init(hWnd);
         ImGui_ImplDX9_Init(device);

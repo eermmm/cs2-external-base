@@ -1,7 +1,8 @@
-#include "p_loop.h"
-#include "imgui/imgui.h"
 #include <string>
 #include <algorithm>
+#include "p_loop.h"
+#include "imgui/imgui.h"
+#include "menu.h"
 
 namespace settings
 {
@@ -214,42 +215,33 @@ void main_loop(CheatInstance& ci)
             DispatchMessage(&ci.p_overlay.dx9.message);
         }
 
-        ImGui_ImplDX9_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-        ImGui::NewFrame();
-
-		ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-		ImVec2 pos = ImVec2(10, 10);
-		ImU32 color = IM_COL32(0, 133, 255, 255);
-		draw_list->AddText(pos, color, ("terry davis' third temple"));
-
         if (GetAsyncKeyState(VK_INSERT) & 1)
             settings::menu_key = !settings::menu_key;
-
-        if (GetAsyncKeyState(VK_F1) & 1)
-            settings::box = !settings::box;
-
-        if (GetAsyncKeyState(VK_F2) & 1)
-            settings::skeleton = !settings::skeleton;
-
-        if (GetAsyncKeyState(VK_F3) & 1)
-            settings::kitty = !settings::kitty;
-
-        if (GetAsyncKeyState(VK_F4) & 1)
-            settings::health = !settings::health;
-
-        if (GetAsyncKeyState(VK_F5) & 1)
-            settings::distance = !settings::distance;
-
-        if (GetAsyncKeyState(VK_F6) & 1)
-            settings::name = !settings::name;
-
-        if (GetAsyncKeyState(VK_F7) & 1)
-            settings::weapon = !settings::weapon;
 
         if (GetAsyncKeyState(VK_F8) & 1)
             perseverance::initialized.store(false, std::memory_order_release);
 
+        ImGui_ImplDX9_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+        input();
+
+		ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+		ImVec2 pos = ImVec2(10, 10);
+		ImU32 color = IM_COL32(0, 133, 255, 255);
+		draw_list->AddText(pos, color, ("perseverance"));
+
+        if (settings::menu_key) {
+            menu();
+
+            SetWindowLong(ci.p_overlay.window.hWnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
+            UpdateWindow(ci.p_overlay.window.hWnd);
+            SetFocus(ci.p_overlay.window.hWnd);
+        }
+        else {
+            SetWindowLong(ci.p_overlay.window.hWnd, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW);
+            SetFocus(nullptr);
+        }
          
         esp_loop();
         ImGui::EndFrame();

@@ -140,6 +140,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="menu.h" />
     <ClInclude Include="offsets.h" />
     <ClInclude Include="p_cheat.h" />
     <ClInclude Include="p_instance.h" />
@@ -156,6 +157,7 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="menu.cpp" />
     <ClCompile Include="p_cheat.cpp" />
     <ClCompile Include="p_instance.cpp" />
     <ClCompile Include="p_loop.cpp" />
