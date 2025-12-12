@@ -181,23 +181,30 @@ void render_misc()
 	if (selectedTab != 1)
 		return;
 
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 8));
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.08f, 0.08f, 0.08f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.18f, 0.18f, 0.18f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.22f, 0.22f, 0.22f, 1.0f));
 
 	ImGui::SetCursorPos(ImVec2(15, 50));
 	ImGui::BeginGroup();
 
 	render_child_section("misc", 290, 300, []() {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 7));
-		
+
+		if (ImGui::Button("Exit", ImVec2(40, 20)))
+			perseverance::initialized.store(false, std::memory_order_release);
+
 		ImGui::PopStyleVar();
 		});
 
-	ImGui::PopStyleColor(2);
-	ImGui::PopStyleVar(3);
+	ImGui::PopStyleColor(5);
+	ImGui::PopStyleVar(4);
 }
 
 void menu()

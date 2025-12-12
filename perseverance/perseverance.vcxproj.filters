@@ -17,7 +17,7 @@
     <Filter Include="main\sdk">
       <UniqueIdentifier>{9527d942-cf73-46b8-8428-fbfecf634855}</UniqueIdentifier>
     </Filter>
-    <Filter Include="menu">
+    <Filter Include="main\menu">
       <UniqueIdentifier>{129a2a21-6d45-4607-9aff-a2f97824eda5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -71,7 +71,7 @@
       <Filter>main\memory</Filter>
     </ClInclude>
     <ClInclude Include="p_menu.h">
-      <Filter>menu</Filter>
+      <Filter>main\menu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -112,7 +112,7 @@
       <Filter>main\sdk</Filter>
     </ClCompile>
     <ClCompile Include="p_menu.cpp">
-      <Filter>menu</Filter>
+      <Filter>main\menu</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
