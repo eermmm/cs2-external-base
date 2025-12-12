@@ -39,6 +39,12 @@ void draw_cornered_box(float x, float y, float w, float h, const ImColor color, 
 	ImGui::GetForegroundDrawList()->AddLine(ImVec2(x + w, y + h - (h / 3)), ImVec2(x + w, y + h), color, thickness);
 }
 
+float get_text_scale(float distance)
+{
+    float scale = 120.0f / distance;   
+    return std::clamp(scale, 0.35f, 0.85f); 
+}
+
 void esp_loop()
 {
     auto c = std::atomic_load_explicit(&perseverance::p_cache, std::memory_order_acquire);
@@ -58,6 +64,9 @@ void esp_loop()
 
         vec3 origin = player.get_pos();
         vec3 head = player.get_bone(player.head);
+        vec3 diff = local.get_pos() - player.get_pos();
+        float distance = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+        distance = distance / 52.49f;
 
         head.z += 8.f;
 
@@ -79,7 +88,6 @@ void esp_loop()
         ImVec2 box_min(box_x, box_y);
         ImVec2 box_max(box_x + box_width, box_y + box_height);
 
-
         if (settings::box)
             draw_cornered_box(box_x, box_y, box_width, box_height, ImColor(255, 255, 255), 1.f);
 
@@ -93,25 +101,24 @@ void esp_loop()
 
         if (settings::distance)
         {
-            vec3 diff = local.get_pos() - player.get_pos();
-            float distance = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
-            distance = distance / 52.49f;
             std::string dist_text = std::to_string((int)distance) + "m";
 
-            ImFont* font = ImGui::GetFont();
-            ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, dist_text.c_str());
-            ImVec2 text_pos = ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + 2);
+            float scale = get_text_scale(distance);
+            float font_size = ImGui::GetFont()->FontSize * scale;
 
-            float outline_size = 1.0f; 
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), dist_text.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), dist_text.c_str());
+            ImFont* font = ImGui::GetFont();
+            ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, dist_text.c_str());
+            ImVec2 text_pos(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + 2);
+
+            float o = 1.0f;
+            auto* dl = ImGui::GetBackgroundDrawList();
+
+            dl->AddText(font, font_size, ImVec2(text_pos.x - o, text_pos.y), IM_COL32(0, 0, 0, 255), dist_text.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x + o, text_pos.y), IM_COL32(0, 0, 0, 255), dist_text.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y - o), IM_COL32(0, 0, 0, 255), dist_text.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y + o), IM_COL32(0, 0, 0, 255), dist_text.c_str());
+
+            dl->AddText(font, font_size, text_pos, IM_COL32(255, 255, 255, 255), dist_text.c_str());
         }
 
         if (settings::weapon)
@@ -120,46 +127,48 @@ void esp_loop()
             if (weapon_name && strcmp(weapon_name, "Unknown") != 0)
             {
                 std::string weapon_text = weapon_name;
+
+                float scale = get_text_scale(distance);
+                float font_size = ImGui::GetFont()->FontSize * scale;
+
                 ImFont* font = ImGui::GetFont();
-                ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, weapon_text.c_str());
+                ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, weapon_text.c_str());
 
-                float y_offset = settings::distance ? (font->FontSize + 4) : 2;
-                ImVec2 text_pos = ImVec2(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + y_offset);
+                float y_offset = settings::distance ? (font_size + 4) : 2;
+                ImVec2 text_pos(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + y_offset);
 
-                float outline_size = 1.0f;
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), weapon_text.c_str());
-                ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), weapon_text.c_str());
+                float o = 1.0f;
+                auto* dl = ImGui::GetBackgroundDrawList();
+
+                dl->AddText(font, font_size, ImVec2(text_pos.x - o, text_pos.y), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+                dl->AddText(font, font_size, ImVec2(text_pos.x + o, text_pos.y), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+                dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y - o), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+                dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y + o), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+
+                dl->AddText(font, font_size, text_pos, IM_COL32(255, 255, 255, 255), weapon_text.c_str());
             }
         }
 
         if (settings::name)
         {
-            vec3 diff = local.get_pos() - player.get_pos();
-            float distance = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
-            distance = distance / 52.49f;
             std::string name = player.get_name();
 
-            ImFont* font = ImGui::GetFont();
-            ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, name.c_str());
-            ImVec2 text_pos = ImVec2(box_x + box_width - text_size.x, box_y - text_size.y - 2);
+            float scale = get_text_scale(distance);
+            float font_size = ImGui::GetFont()->FontSize * scale;
 
-            float outline_size = 1.0f;
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y - outline_size), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x, text_pos.y + outline_size), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y - outline_size), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x - outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(ImVec2(text_pos.x + outline_size, text_pos.y + outline_size), ImColor(0, 0, 0), name.c_str());
-            ImGui::GetBackgroundDrawList()->AddText(text_pos, ImColor(255, 255, 255), name.c_str());
+            ImFont* font = ImGui::GetFont();
+            ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, name.c_str());
+            ImVec2 text_pos(box_x + box_width - text_size.x, box_y - text_size.y - 2);
+
+            float o = 1.0f;
+            auto* dl = ImGui::GetBackgroundDrawList();
+
+            dl->AddText(font, font_size, ImVec2(text_pos.x - o, text_pos.y), IM_COL32(0, 0, 0, 255), name.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x + o, text_pos.y), IM_COL32(0, 0, 0, 255), name.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y - o), IM_COL32(0, 0, 0, 255), name.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y + o), IM_COL32(0, 0, 0, 255), name.c_str());
+
+            dl->AddText(font, font_size, text_pos, IM_COL32(255, 255, 255, 255), name.c_str());
         }
 
         if (settings::skeleton)
@@ -168,14 +177,21 @@ void esp_loop()
             {
                 vec3 bone_start_3D = player.get_bone(from);
                 vec3 bone_end_3D = player.get_bone(to);
+                vec3 head3d = player.get_bone(player.head);
 
-                vec2 screen_start, screen_end;
+                vec2 screen_start, screen_end, headd;
                 if (!World2Screen(bone_start_3D, screen_start, c->viewMatrix.matrix, c->Width, c->Height) ||
-                    !World2Screen(bone_end_3D, screen_end, c->viewMatrix.matrix, c->Width, c->Height))
+                    !World2Screen(bone_end_3D, screen_end, c->viewMatrix.matrix, c->Width, c->Height)     || 
+                    !World2Screen(head3d, headd, c->viewMatrix.matrix, c->Width, c->Height))
                     continue;
 
                 //ImGui::GetBackgroundDrawList()->AddLine(ImVec2(screen_start.x, screen_start.y), ImVec2(screen_end.x, screen_end.y), ImColor(0, 0, 0, 255), 3.f);
                 ImGui::GetBackgroundDrawList()->AddLine(ImVec2(screen_start.x, screen_start.y), ImVec2(screen_end.x, screen_end.y), ImColor(255, 255, 255, 255), 1.f);
+
+                // head circle
+                float radius = 120.0f / distance;        
+                radius = std::clamp(radius, 1.0f, 3.0f);
+                ImGui::GetBackgroundDrawList()->AddCircle(ImVec2(headd.x, headd.y), radius, ImColor(255, 255, 255, 255), 16, 1.f);
             }
         }
 

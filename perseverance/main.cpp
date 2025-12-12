@@ -48,7 +48,6 @@ int main()
 	}
 	UnregisterHotKey(nullptr, 1);
 
-
 	if (!perseverance::p_cheatinstance.Initialize())
 	{
 		std::cerr << "Failed to Initialize" << std::endl;
