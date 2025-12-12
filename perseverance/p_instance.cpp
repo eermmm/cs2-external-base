@@ -77,4 +77,5 @@ void CheatInstance::Uninitialize()
 		CloseHandle(p_mem->GetHandle());
 
 	p_mem = nullptr;
+	SetFocus(nullptr);
 }

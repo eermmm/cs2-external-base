@@ -125,29 +125,29 @@ void esp_loop()
         if (settings::weapon)
         {
             const char* weapon_name = player.get_weapon();
-            if (weapon_name && strcmp(weapon_name, "Unknown") != 0)
-            {
-                std::string weapon_text = weapon_name;
+            if (!weapon_name && strcmp(weapon_name, "Unknown") == 0)
+                continue;
 
-                float scale = get_text_scale(distance);
-                float font_size = ImGui::GetFont()->FontSize * scale;
+            std::string weapon_text = weapon_name;
 
-                ImFont* font = ImGui::GetFont();
-                ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, weapon_text.c_str());
+            float scale = get_text_scale(distance);
+            float font_size = ImGui::GetFont()->FontSize * scale;
 
-                float y_offset = settings::distance ? (font_size + 4) : 2;
-                ImVec2 text_pos(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + y_offset);
+            ImFont* font = ImGui::GetFont();
+            ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, weapon_text.c_str());
 
-                float o = 1.0f;
-                auto* dl = ImGui::GetBackgroundDrawList();
+            float y_offset = settings::distance ? (font_size + 4) : 2;
+            ImVec2 text_pos(box_x + box_width / 2 - text_size.x / 2, box_y + box_height + y_offset);
 
-                dl->AddText(font, font_size, ImVec2(text_pos.x - o, text_pos.y), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
-                dl->AddText(font, font_size, ImVec2(text_pos.x + o, text_pos.y), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
-                dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y - o), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
-                dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y + o), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+            float o = 1.0f;
+            auto* dl = ImGui::GetBackgroundDrawList();
 
-                dl->AddText(font, font_size, text_pos, IM_COL32(255, 255, 255, 255), weapon_text.c_str());
-            }
+            dl->AddText(font, font_size, ImVec2(text_pos.x - o, text_pos.y), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x + o, text_pos.y), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y - o), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+            dl->AddText(font, font_size, ImVec2(text_pos.x, text_pos.y + o), IM_COL32(0, 0, 0, 255), weapon_text.c_str());
+
+            dl->AddText(font, font_size, text_pos, IM_COL32(255, 255, 255, 255), weapon_text.c_str());
         }
 
         if (settings::name)
@@ -155,10 +155,15 @@ void esp_loop()
             std::string name = player.get_name();
 
             float scale = get_text_scale(distance);
-            float font_size = ImGui::GetFont()->FontSize * scale;
-
             ImFont* font = ImGui::GetFont();
+            float font_size = font->FontSize * scale;
             ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, name.c_str());
+            if (text_size.x > box_width)
+            {
+                float max_scale = box_width / text_size.x;
+                font_size *= max_scale;
+                text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, name.c_str());
+            }
             ImVec2 text_pos(box_x + box_width - text_size.x, box_y - text_size.y - 2);
 
             float o = 1.0f;
