@@ -70,7 +70,7 @@
     <ClInclude Include="p_memory.h">
       <Filter>main\memory</Filter>
     </ClInclude>
-    <ClInclude Include="menu.h">
+    <ClInclude Include="p_menu.h">
       <Filter>menu</Filter>
     </ClInclude>
   </ItemGroup>
@@ -111,7 +111,7 @@
     <ClCompile Include="p_instance.cpp">
       <Filter>main\sdk</Filter>
     </ClCompile>
-    <ClCompile Include="menu.cpp">
+    <ClCompile Include="p_menu.cpp">
       <Filter>menu</Filter>
     </ClCompile>
   </ItemGroup>

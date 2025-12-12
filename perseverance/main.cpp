@@ -64,6 +64,9 @@ int main()
 	std::atomic_store(&perseverance::p_cache, std::make_shared<Cache>(&perseverance::p_cheatinstance));
 	std::thread cacheThread = std::thread(cache_thread);
 
+	ShowWindow(GetConsoleWindow(), HIDE_WINDOW);
+	FreeConsole();
+
 	while (perseverance::initialized.load())
 	{
 		main_loop(perseverance::p_cheatinstance);
