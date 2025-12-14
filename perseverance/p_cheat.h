@@ -104,19 +104,18 @@ public:
 	};
 
 	const std::vector<std::pair<BONEINDEX, BONEINDEX>> skeleton = {
-		{ head, neck },
 		{ neck, spine_3 },
 		{ spine_3, spine_1 },
 		{ spine_1, pelvis },
 
 		// Left arm
-		{ spine_3, clavicle_l },
+		{ clavicle_r, clavicle_l },
 		{ clavicle_l, arm_upper_l },
 		{ arm_upper_l, arm_lower_l },
 		{ arm_lower_l, hand_l },
 
 		// Right arm
-		{ spine_3, clavicle_r },
+// we dont needa draw it twice		{ clavicle_l, clavicle_r },
 		{ clavicle_r, arm_upper_r },
 		{ arm_upper_r, arm_lower_r },
 		{ arm_lower_r, hand_r },
