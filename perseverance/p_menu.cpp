@@ -10,35 +10,35 @@ static int selectedTab = 0; // global
 
 void input()
 {
-	ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui::GetIO();
 
-	for (int i = 0; i < 5; i++)
-		io.MouseDown[i] = false;
+    for (int i = 0; i < 5; i++)
+        io.MouseDown[i] = false;
 
-	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
-		io.MouseDown[0] = true;
+    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+        io.MouseDown[0] = true;
 
 
-	for (int key = 0; key < 512; key++)
-		io.KeysDown[key] = (GetAsyncKeyState(key) & 0x8000);
+    for (int key = 0; key < 512; key++)
+        io.KeysDown[key] = (GetAsyncKeyState(key) & 0x8000);
 
-	io.KeyCtrl = (GetAsyncKeyState(VK_CONTROL) & 0x8000);
-	io.KeyShift = (GetAsyncKeyState(VK_SHIFT) & 0x8000);
-	io.KeyAlt = (GetAsyncKeyState(VK_MENU) & 0x8000);
+    io.KeyCtrl = (GetAsyncKeyState(VK_CONTROL) & 0x8000);
+    io.KeyShift = (GetAsyncKeyState(VK_SHIFT) & 0x8000);
+    io.KeyAlt = (GetAsyncKeyState(VK_MENU) & 0x8000);
 
-	for (int key = 0x30; key <= 0x5A; key++)
-	{
-		if (GetAsyncKeyState(key) & 1)
-		{
-			BYTE keyboardState[256];
-			if (!GetKeyboardState(keyboardState))
-				return;
+    for (int key = 0x30; key <= 0x5A; key++)
+    {
+        if (GetAsyncKeyState(key) & 1)
+        {
+            BYTE keyboardState[256];
+            if (!GetKeyboardState(keyboardState))
+                return;
 
-			WCHAR unicodeChar[4];
-			if (ToUnicode(key, MapVirtualKey(key, MAPVK_VK_TO_VSC), keyboardState, unicodeChar, 4, 0) > 0)
-				io.AddInputCharacter(unicodeChar[0]);
-		}
-	}
+            WCHAR unicodeChar[4];
+            if (ToUnicode(key, MapVirtualKey(key, MAPVK_VK_TO_VSC), keyboardState, unicodeChar, 4, 0) > 0)
+                io.AddInputCharacter(unicodeChar[0]);
+        }
+    }
 }
 
 
@@ -67,10 +67,18 @@ struct SectionAnimation {
     float fadeIn = 0.0f;
 };
 
+struct SliderAnimation {
+    float hoverAlpha = 0.0f;
+    float activeAlpha = 0.0f;
+    float valueGlow = 0.0f;
+    float grabPulse = 0.0f;
+};
+
 // Global animation storage
 static std::map<std::string, CheckboxAnimation> checkboxAnims;
 static std::map<std::string, SectionAnimation> sectionAnims;
 static std::map<std::string, float> buttonAnims;
+static std::map<std::string, SliderAnimation> sliderAnims;
 
 bool MinimalCheckBox(const char* label, bool* v) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -147,6 +155,130 @@ bool MinimalCheckBox(const char* label, bool* v) {
     draw->AddText(labelPos, textColor, label);
 
     return clicked;
+}
+
+bool AnimatedFloatSlider(const char* label, float* v, float v_min, float v_max, const char* format = "%.1f") {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 labelSize = ImGui::CalcTextSize(label);
+    float sliderWidth = 200.0f;
+    float sliderHeight = 4.0f;
+    float grabRadius = 6.0f;
+
+    // Layout: Label on left, slider on right
+    ImVec2 sliderPos = ImVec2(pos.x + labelSize.x + 15.0f, pos.y + labelSize.y * 0.5f - sliderHeight * 0.5f);
+    ImVec2 totalSize = ImVec2(labelSize.x + 15.0f + sliderWidth, ImMax(labelSize.y, grabRadius * 2));
+
+    ImGui::InvisibleButton(label, totalSize);
+    bool hovered = ImGui::IsItemHovered();
+    bool active = ImGui::IsItemActive();
+
+    // Get or create animation state
+    std::string key = std::string(label);
+    auto& anim = sliderAnims[key];
+
+    float dt = ImGui::GetIO().DeltaTime;
+
+    // Animate hover
+    float targetHover = hovered ? 1.0f : 0.0f;
+    anim.hoverAlpha += (targetHover - anim.hoverAlpha) * 15.0f * dt;
+
+    // Animate active/dragging
+    float targetActive = active ? 1.0f : 0.0f;
+    anim.activeAlpha += (targetActive - anim.activeAlpha) * 20.0f * dt;
+
+    // Value change glow
+    static float lastValue = *v;
+    if (fabsf(*v - lastValue) > 0.01f) {
+        anim.valueGlow = 1.0f;
+        lastValue = *v;
+    }
+    anim.valueGlow = ImMax(0.0f, anim.valueGlow - dt * 3.0f);
+
+    // Grab pulse animation
+    anim.grabPulse += dt * 4.0f;
+
+    // Handle dragging
+    if (active) {
+        float mouseX = ImGui::GetIO().MousePos.x;
+        float normalizedValue = ImClamp((mouseX - sliderPos.x) / sliderWidth, 0.0f, 1.0f);
+        *v = v_min + normalizedValue * (v_max - v_min);
+    }
+
+    ImDrawList* draw = ImGui::GetWindowDrawList();
+
+    // Draw label
+    float labelBrightness = ImLerp(160.0f, 200.0f, anim.hoverAlpha);
+    ImU32 labelColor = IM_COL32(labelBrightness, labelBrightness, labelBrightness, 255);
+    draw->AddText(pos, labelColor, label);
+
+    // Slider track background
+    ImVec2 trackMin = sliderPos;
+    ImVec2 trackMax = ImVec2(sliderPos.x + sliderWidth, sliderPos.y + sliderHeight);
+    float trackBrightness = ImLerp(30.0f, 40.0f, anim.hoverAlpha);
+    draw->AddRectFilled(trackMin, trackMax, IM_COL32(trackBrightness, trackBrightness, trackBrightness, 255), 2.0f);
+
+    // Filled portion with gradient and glow
+    float fillRatio = (*v - v_min) / (v_max - v_min);
+    ImVec2 fillMax = ImVec2(sliderPos.x + sliderWidth * fillRatio, sliderPos.y + sliderHeight);
+
+    float fillBrightness = ImLerp(80.0f, 140.0f, EaseInOutCubic(fillRatio));
+    fillBrightness += anim.activeAlpha * 40.0f + anim.valueGlow * 60.0f;
+
+    // Gradient fill
+    ImU32 fillColorLeft = IM_COL32(fillBrightness * 0.7f, fillBrightness * 0.7f, fillBrightness, 255);
+    ImU32 fillColorRight = IM_COL32(fillBrightness, fillBrightness, fillBrightness, 255);
+    draw->AddRectFilledMultiColor(trackMin, fillMax, fillColorLeft, fillColorRight, fillColorRight, fillColorLeft);
+
+    // Outer glow on filled portion
+    if (anim.valueGlow > 0.01f || anim.activeAlpha > 0.01f) {
+        float glowAlpha = ImMax(anim.valueGlow, anim.activeAlpha) * 100.0f;
+        draw->AddRect(
+            ImVec2(trackMin.x - 1, trackMin.y - 1),
+            ImVec2(fillMax.x + 1, fillMax.y + 1),
+            IM_COL32(120, 140, 255, glowAlpha),
+            2.0f,
+            0,
+            1.5f
+        );
+    }
+
+    // Grab (slider thumb)
+    ImVec2 grabCenter = ImVec2(sliderPos.x + sliderWidth * fillRatio, sliderPos.y + sliderHeight * 0.5f);
+    float grabSize = ImLerp(grabRadius, grabRadius * 1.3f, anim.activeAlpha);
+
+    // Pulsing shadow/glow
+    float pulseFactor = (sin(anim.grabPulse) * 0.5f + 0.5f);
+    float shadowRadius = grabSize + 2.0f + pulseFactor * 2.0f * anim.hoverAlpha;
+    float shadowAlpha = ImLerp(40.0f, 100.0f, anim.hoverAlpha);
+    draw->AddCircleFilled(grabCenter, shadowRadius, IM_COL32(0, 0, 0, shadowAlpha), 16);
+
+    // Main grab circle
+    float grabBrightness = ImLerp(140.0f, 220.0f, anim.activeAlpha);
+    grabBrightness += anim.hoverAlpha * 30.0f;
+    draw->AddCircleFilled(grabCenter, grabSize, IM_COL32(grabBrightness, grabBrightness, grabBrightness, 255), 16);
+
+    // Grab border
+    float borderBrightness = ImLerp(180.0f, 255.0f, anim.hoverAlpha);
+    draw->AddCircle(grabCenter, grabSize, IM_COL32(borderBrightness, borderBrightness, borderBrightness, 255), 16, 1.0f);
+
+    // Value text
+    char valueText[32];
+    snprintf(valueText, sizeof(valueText), format, *v);
+    ImVec2 valueTextSize = ImGui::CalcTextSize(valueText);
+    ImVec2 valueTextPos = ImVec2(sliderPos.x + sliderWidth + 10.0f, pos.y + (labelSize.y - valueTextSize.y) * 0.5f);
+
+    float valueBrightness = ImLerp(140.0f, 200.0f, anim.valueGlow);
+    valueBrightness += anim.hoverAlpha * 40.0f;
+    ImU32 valueColor = IM_COL32(valueBrightness, valueBrightness, valueBrightness, 255);
+    draw->AddText(valueTextPos, valueColor, valueText);
+
+    return active;
 }
 
 void render_child_section(const char* title, float width, float height, std::function<void()> content) {
@@ -254,8 +386,57 @@ void render_visuals() {
     ImGui::PopStyleVar(3);
 }
 
-void render_misc() {
+void render_aim() {
     if (selectedTab != 1) return;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 8));
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.08f, 0.08f, 0.08f, 1.0f));
+
+    ImGui::SetCursorPos(ImVec2(15, 50));
+    ImGui::BeginGroup();
+
+    render_child_section("aimbot", 290, 300, []() {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 12));
+
+        MinimalCheckBox("enable", &settings::aim);
+        MinimalCheckBox("show fov", &settings::show_fov);
+
+        AnimatedFloatSlider("fov", &settings::fov, 10.0f, 500.0f, "%.0f");
+        AnimatedFloatSlider("smooth", &settings::smoothing, 1.0f, 20.0f);
+
+        ImGui::PopStyleVar();
+        });
+
+    ImGui::SetCursorPos(ImVec2(315, 50));
+
+    render_child_section("keybind", 290, 300, []() {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 7));
+
+        ImGui::Text("aim key: %d", settings::keybind);
+        ImGui::Text("press a key to bind");
+
+        // Simple keybind detection
+        for (int key = 0; key < 256; key++) {
+            if (GetAsyncKeyState(key) & 1) {
+                if (key != VK_LBUTTON && key != VK_RBUTTON && key != VK_ESCAPE) {
+                    settings::keybind = key;
+                    break;
+                }
+            }
+        }
+
+        ImGui::PopStyleVar();
+        });
+
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(3);
+}
+
+void render_misc() {
+    if (selectedTab != 2) return;
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 8));
@@ -365,7 +546,7 @@ void menu() {
         ImGui::PushFont(ImGui::GetFont());
 
         float paddingLeft = 18.f;
-        float tabSpacing = 65.f;
+        float tabSpacing = 25.f; // spacing between tabs
         ImVec4 colActive = ImVec4(1.f, 1.f, 1.f, 1.f);
         ImVec4 colInactive = ImVec4(0.5f, 0.5f, 0.5f, 1.f);
         ImVec4 colHover = ImVec4(0.8f, 0.8f, 0.8f, 1.f);
@@ -384,12 +565,14 @@ void menu() {
             tabTransition = ImMin(tabTransition + dt * 6.0f, 1.0f);
         }
 
+        float currentTabX = paddingLeft;
+
         // Visuals tab
         {
             const char* txt = "visuals";
             ImVec2 textSize = ImGui::CalcTextSize(txt);
             ImVec2 pos = ImVec2(
-                outerMin.x + paddingLeft,
+                outerMin.x + currentTabX,
                 outerMin.y + (barHeight * 0.5f) - (textSize.y * 0.5f)
             );
 
@@ -412,19 +595,21 @@ void menu() {
                     2.0f
                 );
             }
+
+            currentTabX += textSize.x + tabSpacing;
         }
 
-        // Misc tab
+        // Aim tab
         {
-            const char* txt = "misc";
+            const char* txt = "aim";
             ImVec2 textSize = ImGui::CalcTextSize(txt);
             ImVec2 pos = ImVec2(
-                outerMin.x + paddingLeft + tabSpacing,
+                outerMin.x + currentTabX,
                 outerMin.y + (barHeight * 0.5f) - (textSize.y * 0.5f)
             );
 
             ImGui::SetCursorScreenPos(pos);
-            ImGui::InvisibleButton("misc_btn", textSize);
+            ImGui::InvisibleButton("aim_btn", textSize);
             bool hovered = ImGui::IsItemHovered();
             if (ImGui::IsItemClicked()) selectedTab = 1;
 
@@ -433,6 +618,38 @@ void menu() {
 
             // Animated underline
             if (selectedTab == 1) {
+                float underlineProgress = EaseOutCubic(tabTransition);
+                float underlineWidth = textSize.x * underlineProgress;
+                draw->AddLine(
+                    ImVec2(pos.x, pos.y + textSize.y + 3),
+                    ImVec2(pos.x + underlineWidth, pos.y + textSize.y + 3),
+                    IM_COL32(60, 140, 255, 255),
+                    2.0f
+                );
+            }
+
+            currentTabX += textSize.x + tabSpacing;
+        }
+
+        // Misc tab
+        {
+            const char* txt = "misc";
+            ImVec2 textSize = ImGui::CalcTextSize(txt);
+            ImVec2 pos = ImVec2(
+                outerMin.x + currentTabX,
+                outerMin.y + (barHeight * 0.5f) - (textSize.y * 0.5f)
+            );
+
+            ImGui::SetCursorScreenPos(pos);
+            ImGui::InvisibleButton("misc_btn", textSize);
+            bool hovered = ImGui::IsItemHovered();
+            if (ImGui::IsItemClicked()) selectedTab = 2;
+
+            ImVec4 color = selectedTab == 2 ? colActive : (hovered ? colHover : colInactive);
+            draw->AddText(pos, ImGui::ColorConvertFloat4ToU32(color), txt);
+
+            // Animated underline
+            if (selectedTab == 2) {
                 float underlineProgress = EaseOutCubic(tabTransition);
                 float underlineWidth = textSize.x * underlineProgress;
                 draw->AddLine(
@@ -451,6 +668,8 @@ void menu() {
         if (selectedTab == 0)
             render_visuals();
         else if (selectedTab == 1)
+            render_aim();
+        else if (selectedTab == 2)
             render_misc();
         ImGui::PopStyleVar();
     }

@@ -12,7 +12,14 @@ namespace settings
 	extern bool name;
 	extern bool health;
 	extern bool kitty;
+
+	extern bool aim;
+	extern bool show_fov;
+	extern float fov;
+	extern int keybind;
+	extern float smoothing;
 }
 
 void esp_loop();
+void aim_loop();
 void main_loop(CheatInstance& ci);

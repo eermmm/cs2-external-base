@@ -7,6 +7,7 @@ extern void input();
 
 // tabs
 extern void render_visuals();
+extern void render_aim();
 extern void render_misc();
 
 // menu
