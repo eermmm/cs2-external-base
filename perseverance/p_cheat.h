@@ -141,6 +141,7 @@ public:
 	bool	           is_alive() const;
 	bool	   is_enemy(int ltid) const;
 	bool is_valid() const { return playerController && playerPawn; }
+	DWORD64			  get_player_pawn() const { return playerPawn; }
 
 protected:
 	DWORD64				playerController = 0;
@@ -151,11 +152,12 @@ protected:
 class LocalPlayer : public PlayerEntity
 {
 public:
+	int lpindex = 0;
 
 	LocalPlayer(const CheatInstance* cheatPtr) : PlayerEntity(0, 0, cheatPtr) { }
 	~LocalPlayer() = default;
 
-	void update();
+	void					 update();
 };
 
 class Cache

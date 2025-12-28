@@ -74,11 +74,218 @@ struct SliderAnimation {
     float grabPulse = 0.0f;
 };
 
+struct KeybindAnimation {
+    float hoverAlpha = 0.0f;
+    float activeAlpha = 0.0f;
+    float pulseTime = 0.0f;
+    float flashAlpha = 0.0f;
+};
+
 // Global animation storage
 static std::map<std::string, CheckboxAnimation> checkboxAnims;
 static std::map<std::string, SectionAnimation> sectionAnims;
 static std::map<std::string, float> buttonAnims;
+static std::map<std::string, KeybindAnimation> keybindAnims;
 static std::map<std::string, SliderAnimation> sliderAnims;
+
+const char* GetKeyName(int key) {
+    static char keyName[32];
+
+    if (key == 0) return "None";
+
+    // Special keys
+    switch (key) {
+    case VK_LBUTTON: return "LMB";
+    case VK_RBUTTON: return "RMB";
+    case VK_MBUTTON: return "MMB";
+    case VK_XBUTTON1: return "Mouse4";
+    case VK_XBUTTON2: return "Mouse5";
+    case VK_SHIFT: return "Shift";
+    case VK_CONTROL: return "Ctrl";
+    case VK_MENU: return "Alt";
+    case VK_CAPITAL: return "Caps";
+    case VK_TAB: return "Tab";
+    case VK_SPACE: return "Space";
+    case VK_RETURN: return "Enter";
+    case VK_BACK: return "Backspace";
+    case VK_INSERT: return "Insert";
+    case VK_DELETE: return "Delete";
+    case VK_HOME: return "Home";
+    case VK_END: return "End";
+    case VK_PRIOR: return "PgUp";
+    case VK_NEXT: return "PgDn";
+    default:
+        if (key >= 0x30 && key <= 0x39) { // 0-9
+            snprintf(keyName, sizeof(keyName), "%c", key);
+            return keyName;
+        }
+        if (key >= 0x41 && key <= 0x5A) { // A-Z
+            snprintf(keyName, sizeof(keyName), "%c", key);
+            return keyName;
+        }
+        if (key >= VK_F1 && key <= VK_F24) {
+            snprintf(keyName, sizeof(keyName), "F%d", key - VK_F1 + 1);
+            return keyName;
+        }
+        snprintf(keyName, sizeof(keyName), "Key %d", key);
+        return keyName;
+    }
+}
+
+bool AnimatedKeybindButton(const char* label, int* key, bool* isListening) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 labelSize = ImGui::CalcTextSize(label);
+
+    float buttonWidth = 120.0f;
+    float buttonHeight = 26.0f;
+    float spacing = 15.0f;
+
+    ImVec2 buttonPos = ImVec2(pos.x + labelSize.x + spacing, pos.y - 3);
+    ImVec2 totalSize = ImVec2(labelSize.x + spacing + buttonWidth, ImMax(labelSize.y, buttonHeight));
+
+    // Button hitbox
+    ImGui::SetCursorScreenPos(buttonPos);
+    ImGui::InvisibleButton(label, ImVec2(buttonWidth, buttonHeight));
+    bool hovered = ImGui::IsItemHovered();
+    bool clicked = ImGui::IsItemClicked();
+
+    // Get or create animation state
+    std::string key_str = std::string(label);
+    auto& anim = keybindAnims[key_str];
+
+    float dt = ImGui::GetIO().DeltaTime;
+
+    // Animate hover
+    float targetHover = hovered ? 1.0f : 0.0f;
+    anim.hoverAlpha += (targetHover - anim.hoverAlpha) * 15.0f * dt;
+
+    // Animate active/listening state
+    float targetActive = *isListening ? 1.0f : 0.0f;
+    anim.activeAlpha += (targetActive - anim.activeAlpha) * 12.0f * dt;
+
+    // Pulse animation when listening
+    if (*isListening) {
+        anim.pulseTime += dt * 4.0f;
+    }
+    else {
+        anim.pulseTime = 0.0f;
+    }
+
+    // Flash animation when key changes
+    if (anim.flashAlpha > 0.0f) {
+        anim.flashAlpha = ImMax(0.0f, anim.flashAlpha - dt * 4.0f);
+    }
+
+    // Handle click to start listening
+    if (clicked) {
+        *isListening = !*isListening;
+    }
+
+    // Handle key detection when listening
+    if (*isListening) {
+        for (int k = 0; k < 256; k++) {
+            if (GetAsyncKeyState(k) & 1) {
+                if (k != VK_LBUTTON && k != VK_RBUTTON && k != VK_ESCAPE) {
+                    *key = k;
+                    *isListening = false;
+                    anim.flashAlpha = 1.0f;
+                    break;
+                }
+                else if (k == VK_ESCAPE) {
+                    *isListening = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    ImDrawList* draw = ImGui::GetWindowDrawList();
+
+    // Draw label
+    float labelBrightness = ImLerp(160.0f, 200.0f, anim.hoverAlpha);
+    ImU32 labelColor = IM_COL32(labelBrightness, labelBrightness, labelBrightness, 255);
+    draw->AddText(pos, labelColor, label);
+
+    // Button background with animated colors
+    ImVec2 btnMin = buttonPos;
+    ImVec2 btnMax = ImVec2(buttonPos.x + buttonWidth, buttonPos.y + buttonHeight);
+    float rounding = 4.0f;
+
+    // Background color transitions
+    float bgBrightness = ImLerp(18.0f, 28.0f, anim.hoverAlpha);
+    bgBrightness = ImLerp(bgBrightness, 35.0f, anim.activeAlpha);
+    ImU32 bgColor = IM_COL32(bgBrightness, bgBrightness, bgBrightness, 255);
+    draw->AddRectFilled(btnMin, btnMax, bgColor, rounding);
+
+    // Pulsing glow when listening
+    if (*isListening) {
+        float pulseFactor = (sin(anim.pulseTime) * 0.5f + 0.5f);
+        float glowSize = 3.0f + pulseFactor * 2.0f;
+        float glowAlpha = 60.0f + pulseFactor * 80.0f;
+
+        draw->AddRect(
+            ImVec2(btnMin.x - glowSize, btnMin.y - glowSize),
+            ImVec2(btnMax.x + glowSize, btnMax.y + glowSize),
+            IM_COL32(80, 140, 255, glowAlpha),
+            rounding + 1.0f,
+            0,
+            2.0f
+        );
+    }
+
+    // Flash effect when key changes
+    if (anim.flashAlpha > 0.01f) {
+        float flashIntensity = anim.flashAlpha * 120.0f;
+        draw->AddRect(
+            ImVec2(btnMin.x - 1, btnMin.y - 1),
+            ImVec2(btnMax.x + 1, btnMax.y + 1),
+            IM_COL32(100, 255, 100, flashIntensity),
+            rounding,
+            0,
+            2.0f
+        );
+    }
+
+    // Border with animations
+    float borderBrightness = ImLerp(40.0f, 80.0f, anim.hoverAlpha);
+    borderBrightness = ImLerp(borderBrightness, 140.0f, anim.activeAlpha);
+
+    ImU32 borderColor = *isListening
+        ? IM_COL32(80, 140, 255, 255)
+        : IM_COL32(borderBrightness, borderBrightness, borderBrightness, 255);
+
+    draw->AddRect(btnMin, btnMax, borderColor, rounding, 0, 1.0f);
+
+    // Button text
+    const char* displayText = *isListening ? "..." : GetKeyName(*key);
+    ImVec2 textSize = ImGui::CalcTextSize(displayText);
+    ImVec2 textPos = ImVec2(
+        btnMin.x + (buttonWidth - textSize.x) * 0.5f,
+        btnMin.y + (buttonHeight - textSize.y) * 0.5f
+    );
+
+    float textBrightness = ImLerp(140.0f, 200.0f, anim.hoverAlpha);
+    if (*isListening) {
+        float pulseFactor = (sin(anim.pulseTime * 1.5f) * 0.5f + 0.5f);
+        textBrightness = ImLerp(180.0f, 240.0f, pulseFactor);
+    }
+    textBrightness += anim.flashAlpha * 60.0f;
+
+    ImU32 textColor = IM_COL32(textBrightness, textBrightness, textBrightness, 255);
+    draw->AddText(textPos, textColor, displayText);
+
+    // Restore cursor position for proper layout
+    ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + totalSize.y + 5));
+
+    return clicked;
+}
+
 
 bool MinimalCheckBox(const char* label, bool* v) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -415,18 +622,11 @@ void render_aim() {
     render_child_section("keybind", 290, 300, []() {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 7));
 
-        ImGui::Text("aim key: %d", settings::keybind);
-        ImGui::Text("press a key to bind");
+        static bool isListeningForKey = false;
 
-        // Simple keybind detection
-        for (int key = 0; key < 256; key++) {
-            if (GetAsyncKeyState(key) & 1) {
-                if (key != VK_LBUTTON && key != VK_RBUTTON && key != VK_ESCAPE) {
-                    settings::keybind = key;
-                    break;
-                }
-            }
-        }
+        AnimatedKeybindButton("aim key", &settings::keybind, &isListeningForKey);
+
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
 
         ImGui::PopStyleVar();
         });

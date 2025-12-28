@@ -20,6 +20,4 @@ namespace settings
 	extern float smoothing;
 }
 
-void esp_loop();
-void aim_loop();
-void main_loop(CheatInstance& ci);
+extern void main_loop(CheatInstance& ci);

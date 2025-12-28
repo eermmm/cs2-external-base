@@ -111,6 +111,9 @@ void Cache::update_players()
 		DWORD64 pawn =			  mem->read<DWORD64>(pawnEntry + 112 * (pawnIndex & 0x1FF));
 		if (!pawn) continue;
 
+		if (pawn == this->local.get_player_pawn())
+			local.lpindex = i;
+
 		entityList.emplace_back(controller, pawn, cheat);
 	}
 }
