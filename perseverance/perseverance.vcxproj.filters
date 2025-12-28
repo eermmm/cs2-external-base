@@ -20,6 +20,9 @@
     <Filter Include="main\menu">
       <UniqueIdentifier>{129a2a21-6d45-4607-9aff-a2f97824eda5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="main\cheat">
+      <UniqueIdentifier>{4cb77825-97e3-4c98-b71e-8dd22d2b11a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -73,6 +76,12 @@
     <ClInclude Include="p_menu.h">
       <Filter>main\menu</Filter>
     </ClInclude>
+    <ClInclude Include="esp.h">
+      <Filter>main\cheat</Filter>
+    </ClInclude>
+    <ClInclude Include="aim.h">
+      <Filter>main\cheat</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imgui.cpp">
@@ -113,6 +122,12 @@
     </ClCompile>
     <ClCompile Include="p_menu.cpp">
       <Filter>main\menu</Filter>
+    </ClCompile>
+    <ClCompile Include="esp.cpp">
+      <Filter>main\cheat</Filter>
+    </ClCompile>
+    <ClCompile Include="aim.cpp">
+      <Filter>main\cheat</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

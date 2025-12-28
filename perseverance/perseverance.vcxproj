@@ -130,6 +130,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="aim.h" />
+    <ClInclude Include="esp.h" />
     <ClInclude Include="image.hpp" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
@@ -149,6 +151,8 @@
     <ClInclude Include="p_overlay.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="aim.cpp" />
+    <ClCompile Include="esp.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
